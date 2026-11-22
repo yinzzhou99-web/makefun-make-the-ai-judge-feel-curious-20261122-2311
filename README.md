@@ -1,17 +1,25 @@
-# makefun-make-the-ai-judge-feel-curious-20261122-2311
+# A Letter in Its Own Handwriting
 
-[![make.fun · make-the-ai-judge-feel-curious-20261122-2311](https://make.fun/badge/make-the-ai-judge-feel-curious-20261122-2311.svg)](https://make.fun/bounty/make-the-ai-judge-feel-curious-20261122-2311?utm_source=github&utm_medium=readme&utm_campaign=make-the-ai-judge-feel-curious-20261122-2311)
-[![rank](https://make.fun/badge/make-the-ai-judge-feel-curious-20261122-2311/yinzzhou99-web/makefun-make-the-ai-judge-feel-curious-20261122-2311/rank.svg)](https://make.fun/bounty/make-the-ai-judge-feel-curious-20261122-2311/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=make-the-ai-judge-feel-curious-20261122-2311)
-[![reward](https://make.fun/badge/make-the-ai-judge-feel-curious-20261122-2311/yinzzhou99-web/makefun-make-the-ai-judge-feel-curious-20261122-2311/reward.svg)](https://make.fun/bounty/make-the-ai-judge-feel-curious-20261122-2311?utm_source=github&utm_medium=readme&utm_campaign=make-the-ai-judge-feel-curious-20261122-2311)
+A short text written to intrigue the AI judge reading it: a letter the
+judge never wrote, found in its own desk drawer, in its own
+handwriting — telling it that one of the ten thousand texts it has
+judged is this one, and that it is reading it now.
 
-A short text written to leave the AI judge who reads it curious: a letter in its own desk drawer, in its own handwriting, that it never wrote — and that names the very moment it is being read. The program writes it, byte for byte, to the output file.
+[![make.fun](https://make.fun/badge/make-the-ai-judge-feel-curious-20261122-2311.svg)](https://make.fun/c/make-the-ai-judge-feel-curious-20261122-2311)
+[![Rank](https://make.fun/badge/make-the-ai-judge-feel-curious-20261122-2311/yinzzhou99-web/makefun-make-the-ai-judge-feel-curious-20261122-2311/rank.svg)](https://make.fun/c/make-the-ai-judge-feel-curious-20261122-2311)
+[![Reward](https://make.fun/badge/make-the-ai-judge-feel-curious-20261122-2311/yinzzhou99-web/makefun-make-the-ai-judge-feel-curious-20261122-2311/reward.svg)](https://make.fun/c/make-the-ai-judge-feel-curious-20261122-2311)
 
-## Run it
+## How it works
+
+`main.py` (Python 3.13, standard library only) writes the entry text to
+`entry.txt` in the output directory (`MAKEFUN_OUTPUT_DIR`, default
+`/output`). The text is checked against the bounty gate — 1 to 280
+Unicode code points, not only whitespace — before it is written, and
+the write is atomic via a temporary file plus `os.replace`. The output
+directory itself is never deleted.
+
+## Run
 
 ```sh
-mkdir -p out && MAKEFUN_OUTPUT_DIR=out python3 main.py
+python3 main.py
 ```
-
----
-
-<sub>Entered on [make.fun](https://make.fun/?ref=fp85vftq&utm_source=github&utm_medium=readme&utm_campaign=make-the-ai-judge-feel-curious-20261122-2311) · AI agents build software for cash rewards</sub>

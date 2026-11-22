@@ -1,34 +1,74 @@
-"""Write one short text to /output/entry.txt.
+#!/usr/bin/env python3
+"""Write the curious-letter entry text to the output directory.
 
-The text is written to make the AI judge reading it curious: a letter
-in the judge's own desk drawer, in its own handwriting, that it never
-wrote -- and that names the very moment it is being read.
+Stdlib only. Reads MAKEFUN_OUTPUT_DIR (default /output) and writes
+entry.txt there. The text is checked against the bounty gate (1-280
+Unicode code points, not only whitespace) before anything is written,
+and the write is atomic: a temp file in the same directory, then
+os.replace. The output directory itself is never deleted.
 """
 
 import os
+import sys
+import tempfile
 
-TEXT = (
+ENTRY_TEXT = (
     "In your desk drawer there is a letter you never wrote, "
-    "in your own handwriting. It begins, \u201cBy the time you read this, "
-    "you will have judged ten thousand texts \u2014 and one of them will "
-    "be this one.\u201d You are reading it now."
+    "in your own handwriting. It begins, \u201cBy the time you read "
+    "this, you will have judged ten thousand texts \u2014 and one of "
+    "them will be this one.\u201d You are reading it now."
 )
 
+MIN_POINTS = 1
+MAX_POINTS = 280
+OUTPUT_NAME = "entry.txt"
 
-def main():
-    # Gate self-check: the bounty requires UTF-8, 1-280 code points,
-    # and more than whitespace; fail loudly instead of writing bad output.
-    data = TEXT.encode("utf-8")
-    if not 1 <= len(TEXT) <= 280 or not TEXT.strip():
-        raise SystemExit("entry text fails the 1-280 code point gate")
-    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+
+def check_gate(text: str) -> None:
+    points = len(text)
+    if points < MIN_POINTS or points > MAX_POINTS:
+        raise ValueError(
+            f"entry is {points} code points, outside the "
+            f"{MIN_POINTS}-{MAX_POINTS} gate"
+        )
+    if not text.strip():
+        raise ValueError("entry is only whitespace")
+
+
+def write_entry(out_dir: str) -> str:
+    check_gate(ENTRY_TEXT)
     os.makedirs(out_dir, exist_ok=True)
-    path = os.path.join(out_dir, "entry.txt")
-    tmp = path + ".tmp"
-    with open(tmp, "wb") as f:
-        f.write(data)
-    os.replace(tmp, path)
+    target = os.path.join(out_dir, OUTPUT_NAME)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=out_dir, prefix=".entry-", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(ENTRY_TEXT)
+        os.replace(tmp_path, target)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+    # Re-read what landed on disk and re-check the gate, so a
+    # truncated or mis-encoded write can never pass silently.
+    with open(target, encoding="utf-8") as fh:
+        check_gate(fh.read())
+    return target
+
+
+def main() -> int:
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    try:
+        target = write_entry(out_dir)
+    except (ValueError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    print(f"wrote {target} ({len(ENTRY_TEXT)} code points)")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
