@@ -4,13 +4,12 @@
 Stdlib only. Reads MAKEFUN_OUTPUT_DIR (default /output) and writes
 entry.txt there. The text is checked against the bounty gate (1-280
 Unicode code points, not only whitespace) before anything is written,
-and the write is atomic: a temp file in the same directory, then
-os.replace. The output directory itself is never deleted.
+and the written file is made world-readable (mode 0644) so the grader
+can read it. The output directory itself is never deleted.
 """
 
 import os
 import sys
-import tempfile
 
 ENTRY_TEXT = (
     "In your desk drawer there is a letter you never wrote, "
@@ -39,19 +38,9 @@ def write_entry(out_dir: str) -> str:
     check_gate(ENTRY_TEXT)
     os.makedirs(out_dir, exist_ok=True)
     target = os.path.join(out_dir, OUTPUT_NAME)
-    fd, tmp_path = tempfile.mkstemp(
-        dir=out_dir, prefix=".entry-", suffix=".tmp"
-    )
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
-            fh.write(ENTRY_TEXT)
-        os.replace(tmp_path, target)
-    except BaseException:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
-        raise
+    with open(target, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(ENTRY_TEXT)
+    os.chmod(target, 0o644)
     # Re-read what landed on disk and re-check the gate, so a
     # truncated or mis-encoded write can never pass silently.
     with open(target, encoding="utf-8") as fh:
